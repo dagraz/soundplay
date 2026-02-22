@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "soundplay"
+version = "0.1.0"
+description = "Unix-style command-line tools for audio file manipulation"
+requires-python = ">=3.10"
+dependencies = [
+    "soundfile",
+    "numpy",
+    "scipy",
+    "pydub",
+    "click",
+]
+
+[project.scripts]
+sp-info     = "soundplay.tools.info:main"
+sp-convert  = "soundplay.tools.convert:main"
+sp-gain     = "soundplay.tools.gain:main"
+sp-trim     = "soundplay.tools.trim:main"
+sp-concat   = "soundplay.tools.concat:main"
+sp-mix      = "soundplay.tools.mix:main"
+sp-reverse  = "soundplay.tools.reverse:main"
+sp-normalize = "soundplay.tools.normalize:main"
+sp-fade     = "soundplay.tools.fade:main"
+sp-filter       = "soundplay.tools.filter:main"
+sp-spectralize  = "soundplay.tools.spectralize:main"
+sp-resynth      = "soundplay.tools.resynth:main"
+sp-plot         = "soundplay.tools.plot:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["soundplay*"]
