@@ -29,6 +29,7 @@ sp-filter       = "soundplay.tools.filter:main"
 sp-spectralize  = "soundplay.tools.spectralize:main"
 sp-resynth      = "soundplay.tools.resynth:main"
 sp-plot         = "soundplay.tools.plot:main"
+sp-decompose    = "soundplay.tools.decompose:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
