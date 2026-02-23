@@ -7,6 +7,7 @@ import click
 from pathlib import Path
 from soundplay.core.audio import load_input, save_output, AudioData, is_pipe
 from soundplay.core import spectral as sp
+from soundplay.core.timeutil import TIME, resolve as resolve_time
 
 
 _SPECTRAL_MAGIC = b'SPXF'
@@ -33,9 +34,12 @@ def _detect_format(path: str | None) -> str | None:
     return 'spectral' if ext == '.spx' else 'audio'
 
 
-def _resolve_times(start: float, end: float | None, duration: float | None,
-                   total: float) -> tuple[float, float]:
-    """Resolve start/end/duration into a concrete (start_s, end_s) pair."""
+def _resolve_times(start_raw, end_raw, duration_raw, total: float) -> tuple[float, float]:
+    """Resolve start/end/duration (raw TimeParam strings) into a concrete (start_s, end_s) pair."""
+    start = resolve_time(start_raw, total) or 0.0
+    end = resolve_time(end_raw, total)
+    duration = resolve_time(duration_raw, total)
+
     # Negative times = relative to end
     if start < 0:
         start = max(0.0, total + start)
@@ -79,13 +83,14 @@ def _trim_spectral(sd: sp.SpectralData, start_s: float, end_s: float) -> sp.Spec
 @click.command()
 @click.argument('input',  default=None, required=False)
 @click.argument('output', default=None, required=False)
-@click.option('--start',    default=0.0,  show_default=True,
-              help='Start time in seconds. Negative = relative to end.')
-@click.option('--end',      default=None, type=float,
-              help='End time in seconds. Negative = relative to end. '
+@click.option('--start',    default='0', type=TIME, show_default=True,
+              help='Start time: seconds or percent of duration (e.g. 5 or 10%). '
+                   'Negative = relative to end.')
+@click.option('--end',      default=None, type=TIME,
+              help='End time: seconds or percent. Negative = relative to end. '
                    'Mutually exclusive with --duration.')
-@click.option('--duration', default=None, type=float,
-              help='Duration in seconds from --start. Mutually exclusive with --end.')
+@click.option('--duration', default=None, type=TIME,
+              help='Duration from --start: seconds or percent. Mutually exclusive with --end.')
 @click.option('--format', 'fmt', default=None,
               help='Force output format for audio (wav, flac). '
                    'Inferred from OUTPUT extension when omitted.')
@@ -103,8 +108,10 @@ def main(input, output, start, end, duration, fmt):
     \b
     Examples:
       sp-trim --start 5 --end 30 song.wav trimmed.wav
+      sp-trim --start 10% --end 90% song.wav trimmed.wav
       sp-trim --start 1.5 --duration 10 song.spx clip.spx
-      sp-trim --end -2 song.wav             # drop last 2 seconds (in-place name)
+      sp-trim --start 25% --duration 50% song.spx clip.spx
+      sp-trim --end -2 song.wav             # drop last 2 seconds
       sp-trim --start -10 song.mp3 outro.wav  # last 10 seconds
       cat song.spx | sp-trim --start 2 --end 8 - clipped.spx
     """
