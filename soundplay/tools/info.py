@@ -5,13 +5,33 @@ import io
 import click
 from pathlib import Path
 
-_SPECTRAL_MAGIC = b'SPXF'
+_MAGIC_SPECTRAL = b'SPXF'
+_MAGIC_SPAW     = b'SPAW'
+_MAGIC_WAV      = b'RIFF'
+_MAGIC_FLAC     = b'fLaC'
+_MAGIC_OGG      = b'OggS'
 
 
 def _detect_format(path):
+    """Return 'spectral' or 'audio' from file extension, or None if unknown."""
     if path is None or path == '-':
         return None
     return 'spectral' if Path(path).suffix.lower() == '.spx' else 'audio'
+
+
+def _load_audio_from_buffer(buffered):
+    """Read AudioData from a BytesIO buffer containing any supported audio format."""
+    import soundfile as sf
+    import numpy as np
+    from soundplay.core.audio import AudioData, read_pipe
+    # Peek at magic to decide whether it's our internal SPAW stream or a raw file
+    magic = buffered.read(4)
+    buffered.seek(0)
+    if magic == _MAGIC_SPAW:
+        return read_pipe(buffered)
+    # Raw audio file (WAV, FLAC, OGG…) — soundfile reads from file-like objects
+    data, sr = sf.read(buffered, dtype='float32', always_2d=True)
+    return AudioData(data, sr)
 
 
 @click.command()
@@ -20,14 +40,19 @@ def _detect_format(path):
 def main(input, as_json):
     """Display information about an audio or spectral (.spx) file.
 
-    INPUT may be a file path or '-' to read from stdin pipe.
+    INPUT may be a file path, '-' for stdin, or omitted when stdin is a pipe.
+    Accepts raw WAV/FLAC files piped directly as well as SPAW/SPXF streams.
     """
     fmt = _detect_format(input)
 
     if fmt is None:
+        # Sniff magic bytes from stdin to determine format
         header = sys.stdin.buffer.read(4)
         buffered = io.BytesIO(header + sys.stdin.buffer.read())
-        fmt = 'spectral' if header == _SPECTRAL_MAGIC else 'audio'
+        if header == _MAGIC_SPECTRAL:
+            fmt = 'spectral'
+        else:
+            fmt = 'audio'
     else:
         buffered = None
 
@@ -58,8 +83,8 @@ def main(input, as_json):
             print(f"Hop length  : {sd.hop_length}")
             print(f"Window      : {sd.window}")
     else:
-        from soundplay.core.audio import load_input, read_pipe
-        audio = read_pipe(buffered) if buffered else load_input(input)
+        from soundplay.core.audio import load_input
+        audio = _load_audio_from_buffer(buffered) if buffered else load_input(input)
         if as_json:
             import json
             print(json.dumps({
