@@ -33,24 +33,28 @@ def _find_fundamentals(mean_mag: np.ndarray, freq_bins: np.ndarray,
     if len(peaks) == 0:
         return []
 
-    # Keep top max_notes by prominence
+    # Feed ALL prominence-passing peaks into the sieve — do NOT pre-limit by
+    # max_notes here.  The sieve collapses harmonics into fundamentals, so the
+    # pre-sieve pool is much larger than the final output.  Limiting early
+    # caused high-ranked harmonics to crowd out weaker-but-genuine fundamentals.
     order = np.argsort(-props['prominences'])
-    peaks = peaks[order[:max_notes]]
+    candidates = sorted((freq_bins[peaks[i]], int(peaks[i])) for i in order)
 
     # Sieve: remove any peak that is close to an integer harmonic of a
-    # lower-frequency peak. Tolerance of 5% (~84 cents) handles slight
-    # intonation and bin-quantisation offsets.
-    candidates = sorted((freq_bins[p], int(p)) for p in peaks)
+    # lower-frequency peak already accepted as a fundamental.
+    # Tolerance of 5% (~84 cents) handles slight intonation and bin-quantisation.
     fundamentals = []
     for hz, idx in candidates:
         is_harmonic = any(
             abs(hz / f - round(hz / f)) / round(hz / f) < 0.05
             for f, _ in fundamentals
-            if round(hz / f) >= 2        # only flag as harmonic of n>=2
+            if round(hz / f) >= 2
         )
         if not is_harmonic:
             fundamentals.append((hz, idx))
 
+    # Apply max_notes limit to the post-sieve fundamentals
+    fundamentals = sorted(fundamentals[:max_notes])
     return fundamentals
 
 
