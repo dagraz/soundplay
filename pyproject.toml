@@ -31,6 +31,7 @@ sp-resynth      = "soundplay.tools.resynth:main"
 sp-plot         = "soundplay.tools.plot:main"
 sp-decompose    = "soundplay.tools.decompose:main"
 sp-expand       = "soundplay.tools.expand:main"
+sp-loop         = "soundplay.tools.loop:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
