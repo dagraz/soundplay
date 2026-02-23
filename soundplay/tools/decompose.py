@@ -37,7 +37,21 @@ def _find_fundamentals(mean_mag: np.ndarray, freq_bins: np.ndarray,
     order = np.argsort(-props['prominences'])
     peaks = peaks[order[:max_notes]]
 
-    return sorted((freq_bins[p], int(p)) for p in peaks)
+    # Sieve: remove any peak that is close to an integer harmonic of a
+    # lower-frequency peak. Tolerance of 5% (~84 cents) handles slight
+    # intonation and bin-quantisation offsets.
+    candidates = sorted((freq_bins[p], int(p)) for p in peaks)
+    fundamentals = []
+    for hz, idx in candidates:
+        is_harmonic = any(
+            abs(hz / f - round(hz / f)) / round(hz / f) < 0.05
+            for f, _ in fundamentals
+            if round(hz / f) >= 2        # only flag as harmonic of n>=2
+        )
+        if not is_harmonic:
+            fundamentals.append((hz, idx))
+
+    return fundamentals
 
 
 def _harmonic_bins(fundamental_hz: float, freq_bins: np.ndarray,
