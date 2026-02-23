@@ -112,8 +112,10 @@ def _apply_mask(sd: SpectralData, bin_mask: np.ndarray) -> SpectralData:
               help='Number of bins on each side to include per harmonic/fundamental.')
 @click.option('--max-harmonics', default=16, show_default=True,
               help='Maximum number of harmonics to include per fundamental.')
+@click.option('--no-remainder', is_flag=True,
+              help='Skip writing the remainder file.')
 def main(input, output_dir, no_harmonics, max_notes, min_freq,
-         prominence, bin_window, max_harmonics):
+         prominence, bin_window, max_harmonics, no_remainder):
     """Decompose a chord .spx file into per-note spectral components.
 
     Detects the dominant fundamental frequencies in the spectrum and
@@ -122,11 +124,16 @@ def main(input, output_dir, no_harmonics, max_notes, min_freq,
     \b
     INPUT   .spx file or '-' for stdin pipe.
 
+    By default also writes a remainder file ({stem}_remainder.spx) containing
+    all spectral energy not captured by any component mask, so that joining
+    all components plus the remainder perfectly reconstructs the original.
+
     \b
     Examples:
       sp-decompose chord.spx
       sp-decompose --max-notes 4 --prominence 20 chord.spx
       sp-decompose --no-harmonics chord.spx
+      sp-decompose --no-remainder chord.spx
       sp-decompose --output-dir parts/ chord.spx
       cat chord.spx | sp-decompose -
     """
@@ -162,6 +169,8 @@ def main(input, output_dir, no_harmonics, max_notes, min_freq,
     click.echo(f"Detected {len(fundamentals)} component(s):", err=True)
 
     results = []
+    claimed = np.zeros(sd.bins, dtype=bool)  # bins assigned to any component so far
+
     for hz, bin_idx in fundamentals:
         if no_harmonics:
             mask = _fundamental_only_bins(hz, freq_bins, bin_window)
@@ -169,6 +178,10 @@ def main(input, output_dir, no_harmonics, max_notes, min_freq,
         else:
             mask = _harmonic_bins(hz, freq_bins, bin_window, max_harmonics)
             label = f'+ harmonics (window ±{bin_window} bins)'
+
+        # Strip bins already owned by an earlier component so masks never overlap.
+        mask = mask & ~claimed
+        claimed |= mask
 
         component = _apply_mask(sd, mask)
         out_name = f"{stem}_{hz:.1f}hz.spx"
@@ -179,5 +192,18 @@ def main(input, output_dir, no_harmonics, max_notes, min_freq,
         click.echo(f"  {hz:8.2f} Hz  →  {out_path}  [{label}, mean energy {energy:.4f}]",
                    err=True)
         results.append(out_path)
+
+    if not no_remainder:
+        remainder = _apply_mask(sd, ~claimed)
+        rem_path = out_dir / f"{stem}_remainder.spx"
+        save(remainder, rem_path)
+        rem_energy = float(np.abs(remainder.stft).mean())
+        uncovered_pct = (~claimed).sum() / sd.bins * 100
+        click.echo(
+            f"  remainder  →  {rem_path}  "
+            f"[{uncovered_pct:.1f}% of bins, mean energy {rem_energy:.4f}]",
+            err=True
+        )
+        results.append(rem_path)
 
     click.echo(f"\nWrote {len(results)} file(s) to {out_dir}/", err=True)
