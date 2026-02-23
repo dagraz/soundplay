@@ -32,6 +32,7 @@ sp-plot         = "soundplay.tools.plot:main"
 sp-decompose    = "soundplay.tools.decompose:main"
 sp-expand       = "soundplay.tools.expand:main"
 sp-loop         = "soundplay.tools.loop:main"
+sp-join         = "soundplay.tools.join:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
