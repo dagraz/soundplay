@@ -55,18 +55,21 @@ class AudioData:
         raise ValueError(f"Cannot convert {self.channels}-channel audio to stereo directly")
 
 
+_PYDUB_FORMATS = {'.mp3', '.m4a', '.aac', '.mp4'}
+
+
 def load(path: str | Path) -> AudioData:
-    """Load an audio file. Supports WAV, FLAC, OGG via soundfile; MP3 via pydub/ffmpeg."""
+    """Load an audio file. Supports WAV, FLAC, OGG via soundfile; MP3/M4A/AAC via pydub/ffmpeg."""
     path = Path(path)
-    if path.suffix.lower() == '.mp3':
-        return _load_mp3(path)
+    if path.suffix.lower() in _PYDUB_FORMATS:
+        return _load_via_pydub(path)
     data, sr = sf.read(str(path), dtype='float32', always_2d=True)
     return AudioData(data, sr)
 
 
-def _load_mp3(path: Path) -> AudioData:
+def _load_via_pydub(path: Path) -> AudioData:
     from pydub import AudioSegment
-    seg = AudioSegment.from_mp3(str(path))
+    seg = AudioSegment.from_file(str(path))
     sr = seg.frame_rate
     channels = seg.channels
     raw = np.array(seg.get_array_of_samples(), dtype=np.int16)
