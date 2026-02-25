@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-# reich.sh — Steve Reich-style phasing from a chord SPX file.
+# reich.sh — Steve Reich-style phasing from a chord audio or SPX file.
 #
 # Each spectral component of the chord is looped with a slightly different
 # period (achieved by adding progressively more tail silence), so the
 # components gradually drift in and out of phase with each other.
+# Audio files (wav, mp3, m4a, flac, etc.) are spectralized automatically.
 #
 # Usage:
-#   reich.sh INPUT.spx OUTPUT.wav [OPTIONS]
+#   reich.sh INPUT OUTPUT.wav [OPTIONS]
 #
 # Options:
 #   --loops N        Number of times to loop each component (default: 32)
@@ -34,7 +35,7 @@ WORK_DIR=""
 
 # ------------------------------------------------------------------ args
 if [[ $# -lt 2 ]]; then
-    echo "Usage: $0 INPUT.spx OUTPUT.wav [--loops N] [--drift PCT] [--no-remainder] [--plot] [--plot-notes] [--keep-parts] [--output-dir DIR]" >&2
+    echo "Usage: $0 INPUT OUTPUT.wav [--loops N] [--drift PCT] [--no-remainder] [--plot] [--plot-notes] [--keep-parts] [--output-dir DIR]" >&2
     exit 1
 fi
 
@@ -94,6 +95,17 @@ plot_spx() {
     sp-plot "${extra_args[@]}" --title "$title" "$spx" "$png" 2>/dev/null
     echo "  Plot: $png" >&2
 }
+
+# ------------------------------------------------------------------ spectralize if needed
+EXT="${INPUT##*.}"
+EXT="${EXT,,}"   # lowercase
+
+if [[ "$EXT" != "spx" ]]; then
+    echo "==> Spectralizing ${INPUT}..." >&2
+    SPX_FILE="$WORK_DIR/$(basename "${INPUT%.*}").spx"
+    sp-spectralize "$INPUT" "$SPX_FILE" >&2
+    INPUT="$SPX_FILE"
+fi
 
 # ------------------------------------------------------------------ decompose
 PARTS_DIR="$WORK_DIR/parts"
