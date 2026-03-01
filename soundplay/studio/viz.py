@@ -5,11 +5,27 @@ from __future__ import annotations
 import numpy as np
 
 
+def _ensure_interactive_backend():
+    """Switch matplotlib to an interactive backend if currently non-interactive."""
+    import matplotlib
+    backend = matplotlib.get_backend()
+    if backend == 'agg' or not matplotlib.is_interactive():
+        for candidate in ('TkAgg', 'QtAgg', 'Qt5Agg', 'GTK4Agg', 'GTK3Agg'):
+            try:
+                matplotlib.use(candidate)
+                break
+            except ImportError:
+                continue
+        import matplotlib.pyplot as plt
+        plt.ion()
+
+
 def show_spectrogram(sound, channel: int = -1, db_range: float = 80.0,
                      fmin: float = 20.0, fmax: float | None = None,
                      colormap: str = 'inferno', notes: bool = False,
                      note_labels: bool = False, all_notes: bool = False,
                      title: str | None = None, figsize: tuple = (12, 6)):
+    _ensure_interactive_backend()
     import matplotlib.pyplot as plt
     import matplotlib.ticker as ticker
     from soundplay.tools.plot import note_guidelines
@@ -72,6 +88,7 @@ def show_spectrogram(sound, channel: int = -1, db_range: float = 80.0,
 
 def show_waveform(sound, channel: int = -1, title: str | None = None,
                   figsize: tuple = (12, 4)):
+    _ensure_interactive_backend()
     import matplotlib.pyplot as plt
 
     audio = sound.audio
