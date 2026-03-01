@@ -1,15 +1,16 @@
 # soundplay TODO
 
-## Unimplemented (entry points already registered)
+## Implemented
 
-- [ ] `sp-gain`     — scale volume by a factor or dB amount
-- [ ] `sp-normalize` — normalize to target peak or RMS level
-- [ ] `sp-fade`     — apply fade-in and/or fade-out
-- [ ] `sp-reverse`  — reverse audio or spectral data along the time axis
-- [ ] `sp-concat`   — concatenate multiple audio/spectral files end-to-end
-- [ ] `sp-mix`      — blend multiple audio files with per-file weights
-- [ ] `sp-filter`   — lowpass / highpass / bandpass / notch filter
-- [ ] `sp-convert`  — convert between audio formats (wav ↔ flac ↔ mp3 ↔ ogg)
+- [x] `sp-gain`     — scale volume by a factor or dB amount
+- [x] `sp-normalize` — normalize to target peak or RMS level
+- [x] `sp-fade`     — apply fade-in and/or fade-out
+- [x] `sp-reverse`  — reverse audio or spectral data along the time axis
+- [x] `sp-concat`   — concatenate multiple audio/spectral files end-to-end
+- [x] `sp-mix`      — blend multiple audio files with per-file weights
+- [x] `sp-filter`   — lowpass / highpass / bandpass / notch filter
+- [x] `sp-convert`  — convert between audio formats (wav ↔ flac ↔ ogg)
+- [x] Test suite    — 85 tests covering core modules and all CLI tools
 
 ## Spectral-domain tools
 

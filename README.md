@@ -39,8 +39,87 @@ sp-info --json song.flac
 cat song.wav | sp-info          # pipe
 ```
 
-#### `sp-convert` *(planned)*
-Convert between audio formats (wav, flac, mp3, ogg).
+#### `sp-convert`
+Convert between audio formats (wav, flac, ogg). Reads wav, flac, ogg, mp3, m4a/aac.
+
+```bash
+sp-convert song.mp3 song.wav
+sp-convert recording.wav recording.flac
+sp-convert song.wav --format ogg
+```
+
+---
+
+### Volume and dynamics
+
+#### `sp-gain`
+Scale volume by a linear factor or dB amount.
+
+```bash
+sp-gain 0.5 song.wav quieter.wav
+sp-gain 2.0 song.wav louder.wav
+sp-gain -- -6dB song.wav song_quiet.wav
+sp-gain +3dB song.spx boosted.spx
+```
+
+#### `sp-normalize`
+Normalize to a target peak or RMS level.
+
+```bash
+sp-normalize song.wav normalized.wav
+sp-normalize --target -3 song.wav song_3db.wav
+sp-normalize --mode rms --target -14 song.wav radio.wav
+```
+
+#### `sp-fade`
+Apply fade-in and/or fade-out.
+
+```bash
+sp-fade --fade-in 2 --fade-out 3 song.wav faded.wav
+sp-fade --fade-in 10% song.wav intro.wav
+sp-fade --fade-out 5 song.spx fadeout.spx
+```
+
+---
+
+### Combining and arranging
+
+#### `sp-reverse`
+Reverse audio or spectral data along the time axis.
+
+```bash
+sp-reverse song.wav reversed.wav
+sp-reverse song.spx reversed.spx
+```
+
+#### `sp-concat`
+Concatenate multiple audio or spectral files end-to-end.
+
+```bash
+sp-concat intro.wav verse.wav chorus.wav -o song.wav
+sp-concat part1.spx part2.spx -o combined.spx
+```
+
+#### `sp-mix`
+Blend multiple audio files with per-file weights.
+
+```bash
+sp-mix vocals.wav backing.wav -o combined.wav
+sp-mix -w 0.8,0.2 vocals.wav reverb.wav -o wet.wav
+```
+
+---
+
+### Filtering
+
+#### `sp-filter`
+Apply lowpass, highpass, bandpass, or bandstop filter.
+
+```bash
+sp-filter --type lowpass --freq 2000 song.wav muffled.wav
+sp-filter --type highpass --freq 200 vocals.wav no_rumble.wav
+sp-filter --type bandpass --freq 300 --freq-hi 3000 speech.wav telephone.wav
+```
 
 ---
 
@@ -204,3 +283,14 @@ pip install -e .
 Each tool lives in `soundplay/tools/<name>.py` and is registered as a
 `project.scripts` entry point in `pyproject.toml`. Shared audio I/O is in
 `soundplay/core/audio.py` and spectral I/O in `soundplay/core/spectral.py`.
+
+### Testing
+
+```bash
+pip install -e '.[test]'
+pytest tests/ -v
+```
+
+85 tests cover the three core modules (`audio`, `spectral`, `timeutil`) and
+10 CLI tools. All tests use synthetically generated audio — no real audio
+files are needed.
