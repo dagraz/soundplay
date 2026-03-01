@@ -17,6 +17,7 @@ dependencies = [
 
 [project.optional-dependencies]
 test = ["pytest"]
+studio = ["ipython", "sounddevice", "matplotlib"]
 
 [project.scripts]
 sp-info     = "soundplay.tools.info:main"
@@ -43,6 +44,7 @@ sp-morph        = "soundplay.tools.morph:main"
 sp-stretch      = "soundplay.tools.stretch:main"
 sp-pitch-track  = "soundplay.tools.pitch_track:main"
 sp-rms          = "soundplay.tools.rms:main"
+sp-repl         = "soundplay.studio.repl:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

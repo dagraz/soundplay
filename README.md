@@ -313,6 +313,50 @@ and channel count.
 
 ---
 
+### Interactive studio (`sp-repl`)
+
+An interactive Python REPL for exploring and transforming sounds. All tools
+are accessible as methods on a unified `Sound` object with lazy spectral
+conversion, operator overloading, and chainable transforms.
+
+```bash
+pip install -e '.[studio]'    # installs ipython, sounddevice, matplotlib
+sp-repl
+```
+
+```python
+sp> s = load("voice.wav")
+sp> s
+Sound("voice.wav", 2ch, 44100Hz, 12.340s)
+
+sp> s2 = s.trim(1, 5).transpose(12).gate(-30).fade(fade_in=0.5)
+sp> s2.play()
+sp> s2.plot()
+
+sp> parts = s.decompose(max_notes=4)
+sp> parts[0].play()
+
+sp> morphed = load("piano.wav").morph(load("strings.wav"))
+sp> morphed.save("morphed.wav")
+
+sp> combined = s * 0.5 + s2 * 0.3   # weighted mix via operators
+
+sp> guide()               # overview
+sp> guide('transforms')   # detailed help on a topic
+```
+
+**Available methods:**
+
+| Category | Methods |
+|---|---|
+| Transforms | `gain` `normalize` `fade` `reverse` `trim` `loop` `pad` `filter` |
+| Spectral | `transpose` `gate` `denoise` `stretch` `morph` |
+| Analysis | `decompose` `pitch_track` `rms` |
+| I/O | `load` `save` `play` `stop` `pause` `plot` `waveform` |
+| Operators | `*` (gain) `+` (mix) |
+
+---
+
 ### Pipe protocol
 
 Tools detect whether they are reading from a file or a pipe and switch
@@ -358,11 +402,13 @@ and pipes.
 ```bash
 source .venv/bin/activate
 pip install -e .
+pip install -e '.[studio]'   # optional: for sp-repl (ipython, sounddevice, matplotlib)
 ```
 
 Each tool lives in `soundplay/tools/<name>.py` and is registered as a
 `project.scripts` entry point in `pyproject.toml`. Shared audio I/O is in
 `soundplay/core/audio.py` and spectral I/O in `soundplay/core/spectral.py`.
+The interactive studio lives in `soundplay/studio/`.
 
 ### Testing
 
@@ -371,6 +417,6 @@ pip install -e '.[test]'
 pytest tests/ -v
 ```
 
-85 tests cover the three core modules (`audio`, `spectral`, `timeutil`) and
-10 CLI tools. All tests use synthetically generated audio — no real audio
-files are needed.
+172 tests cover the core modules (`audio`, `spectral`, `timeutil`),
+CLI tools, and the `Sound` class. All tests use synthetically generated
+audio — no real audio files are needed.
