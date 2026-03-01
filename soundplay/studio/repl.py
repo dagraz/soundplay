@@ -216,7 +216,7 @@ def _configure_prompt(ipython):
 
 def main():
     try:
-        import IPython
+        from IPython.terminal.embed import InteractiveShellEmbed
         from IPython.terminal.prompts import Prompts, Token
     except ImportError:
         print("IPython not installed. Install with: pip install 'soundplay[studio]'")
@@ -241,15 +241,11 @@ def main():
         'guide': guide,
     }
 
+    shell = InteractiveShellEmbed(user_ns=user_ns, banner1='')
+    shell.prompts = SpPrompts(shell)
+
     print("soundplay v0.1 — type guide() for help")
-
-    config = IPython.terminal.ipapp.TerminalIPythonApp.instance().config
-    config.TerminalInteractiveShell.prompts_class = SpPrompts
-    config.TerminalInteractiveShell.banner1 = ''
-    config.TerminalInteractiveShell.banner2 = ''
-
-    IPython.start_ipython(argv=[], user_ns=user_ns, config=config,
-                          display_banner=False)
+    shell()
 
 
 if __name__ == '__main__':
