@@ -190,7 +190,7 @@ class Sound:
     # -- I/O ------------------------------------------------------------------
 
     def save(self, path: str, format: str | None = None) -> None:
-        p = Path(path)
+        p = Path(path).expanduser()
         if p.suffix.lower() == '.spx':
             from soundplay.core.spectral import save as spx_save
             spx_save(self.spectral, p)
@@ -241,7 +241,7 @@ class Sound:
 # -- Module-level convenience functions ---------------------------------------
 
 def load(path: str) -> Sound:
-    p = Path(path)
+    p = Path(path).expanduser()
     if p.suffix.lower() == '.spx':
         sd = spx_load(p)
         return Sound(spectral=sd, name=p.name)
