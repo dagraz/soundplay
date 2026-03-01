@@ -249,6 +249,10 @@ def load(path: str) -> Sound:
     return Sound(audio=ad, name=p.name)
 
 
+def save(sound: Sound, path: str, format: str | None = None) -> None:
+    sound.save(path, format=format)
+
+
 def concat(*sounds: Sound) -> Sound:
     from soundplay.tools.concat import _concat_audio
     audios = [s.audio for s in sounds]

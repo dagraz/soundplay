@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import numpy as np
-from soundplay.studio.sound import Sound, load, concat, mix
+from soundplay.studio.sound import Sound, load, save, concat, mix
 
 
 def guide(*args):
@@ -235,6 +235,7 @@ def main():
     user_ns = {
         'Sound': Sound,
         'load': load,
+        'save': save,
         'concat': concat,
         'mix': mix,
         'np': np,
