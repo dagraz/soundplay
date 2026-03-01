@@ -201,6 +201,86 @@ cat beat.spx | sp-loop -n 8 - out.spx
 
 ---
 
+### Spectral manipulation
+
+#### `sp-transpose`
+Pitch-shift a `.spx` file by shifting frequency bins. Accepts semitones or cents.
+
+```bash
+sp-transpose 12 song.spx octave_up.spx
+sp-transpose -7 song.spx lower.spx
+sp-transpose 100c song.spx song_100c.spx    # 100 cents = 1 semitone
+sp-transpose 12 song.spx - | sp-resynth - out.wav
+```
+
+#### `sp-gate`
+Zero spectral bins below a dB threshold. Useful for noise floor removal.
+
+```bash
+sp-gate noisy.spx clean.spx
+sp-gate --threshold -30 noisy.spx clean.spx
+cat noisy.spx | sp-gate --threshold -50 - out.spx
+```
+
+#### `sp-denoise`
+Spectral subtraction noise reduction. Estimates a noise profile from a quiet
+region and subtracts it from the whole file's magnitude spectrum.
+
+```bash
+sp-denoise recording.spx clean.spx
+sp-denoise --noise-start 0 --noise-end 1.0 recording.spx clean.spx
+sp-denoise --oversubtract 1.5 noisy.spx cleaner.spx
+```
+
+#### `sp-morph`
+Interpolate between two `.spx` files for timbral transitions. Resamples the
+second file to the first file's frame count, then blends with a linear alpha
+envelope.
+
+```bash
+sp-morph a.spx b.spx --output morphed.spx
+sp-morph a.spx b.spx --blend-start 0.0 --blend-end 1.0 --output crossfade.spx
+sp-morph a.spx b.spx --output - | sp-resynth - out.wav
+```
+
+#### `sp-stretch`
+Time-stretch a `.spx` file without pitch change. Resamples the STFT frame
+axis by the given factor.
+
+```bash
+sp-stretch 2.0 song.spx slow.spx      # half speed
+sp-stretch 0.5 song.spx fast.spx      # double speed
+cat song.spx | sp-stretch 1.5 - out.spx
+```
+
+---
+
+### Analysis
+
+#### `sp-pitch-track`
+Detect dominant pitch frame-by-frame from a `.spx` file. Outputs a CSV/TSV
+table with columns: `time_s`, `freq_hz`, `midi_note`, `note_name`.
+
+```bash
+sp-pitch-track song.spx
+sp-pitch-track song.spx --output pitches.csv
+sp-pitch-track --fmin 80 --fmax 1000 --format tsv song.spx
+cat song.spx | sp-pitch-track
+```
+
+#### `sp-rms`
+Measure RMS and peak levels over sliding time windows. Accepts any audio file
+or pipe. Outputs a CSV/TSV table with columns: `time_s`, `rms_db`, `peak_db`.
+Silence is reported as -96.0 dBFS.
+
+```bash
+sp-rms song.wav
+sp-rms --window 0.5 --hop 0.1 song.wav --output levels.csv
+cat song.wav | sp-rms --format tsv
+```
+
+---
+
 ### Spectral decomposition
 
 #### `sp-decompose`

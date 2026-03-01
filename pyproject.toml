@@ -36,6 +36,13 @@ sp-decompose    = "soundplay.tools.decompose:main"
 sp-expand       = "soundplay.tools.expand:main"
 sp-loop         = "soundplay.tools.loop:main"
 sp-join         = "soundplay.tools.join:main"
+sp-transpose    = "soundplay.tools.transpose:main"
+sp-gate         = "soundplay.tools.gate:main"
+sp-denoise      = "soundplay.tools.denoise:main"
+sp-morph        = "soundplay.tools.morph:main"
+sp-stretch      = "soundplay.tools.stretch:main"
+sp-pitch-track  = "soundplay.tools.pitch_track:main"
+sp-rms          = "soundplay.tools.rms:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
